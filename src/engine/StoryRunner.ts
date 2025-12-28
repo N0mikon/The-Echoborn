@@ -1,4 +1,5 @@
 import { inkBridge, InkState, InkChoice } from './InkBridge';
+import { Stats, STAT_NAMES, DEFAULT_STATS } from '../types/stats';
 
 export interface GameState {
   currentText: string[];
@@ -40,6 +41,30 @@ export class StoryRunner {
 
   getState(): GameState {
     return this.currentState;
+  }
+
+  // Read all stats from Ink variables
+  getStats(): Stats {
+    const stats = { ...DEFAULT_STATS };
+    for (const name of STAT_NAMES) {
+      const value = inkBridge.getVariable(name);
+      if (typeof value === 'number') {
+        stats[name] = value;
+      }
+    }
+    return stats;
+  }
+
+  // Set a single stat in Ink (for rebirth in Phase 3)
+  setStat(name: keyof Stats, value: number): void {
+    inkBridge.setVariable(name, value);
+  }
+
+  // Set all stats in Ink (for rebirth in Phase 3)
+  setStats(stats: Stats): void {
+    for (const name of STAT_NAMES) {
+      inkBridge.setVariable(name, stats[name]);
+    }
   }
 
   // For save/load (future phase)

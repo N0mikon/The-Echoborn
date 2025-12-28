@@ -1,29 +1,37 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useGameStore } from '../store/gameStore';
+
+// Mapping from internal names to display abbreviations
+const STAT_DISPLAY: Record<string, string> = {
+  strength: 'STR',
+  intelligence: 'INT',
+  agility: 'AGI',
+  stamina: 'STA',
+  charisma: 'CHA',
+  luck: 'LCK',
+  morality: 'MOR',
+};
 
 interface StatsDisplayProps {
   visible?: boolean;
 }
 
 export const StatsDisplay: React.FC<StatsDisplayProps> = ({ visible = false }) => {
+  const stats = useGameStore((state) => state.stats);
+
   if (!visible) return null;
 
-  // Placeholder stats - will be connected to Soul Stats in Phase 3
-  const stats = [
-    { name: 'STR', value: 1 },
-    { name: 'INT', value: 1 },
-    { name: 'AGI', value: 1 },
-    { name: 'STA', value: 1 },
-    { name: 'CHA', value: 1 },
-    { name: 'LCK', value: 1 },
-    { name: 'MOR', value: 1 },
-  ];
+  const statEntries = Object.entries(stats).map(([name, value]) => ({
+    abbrev: STAT_DISPLAY[name] || name.toUpperCase().slice(0, 3),
+    value,
+  }));
 
   return (
     <View style={styles.container}>
-      {stats.map((stat) => (
-        <View key={stat.name} style={styles.statItem}>
-          <Text style={styles.statName}>{stat.name}</Text>
+      {statEntries.map((stat) => (
+        <View key={stat.abbrev} style={styles.statItem}>
+          <Text style={styles.statName}>{stat.abbrev}</Text>
           <Text style={styles.statValue}>{stat.value}</Text>
         </View>
       ))}
