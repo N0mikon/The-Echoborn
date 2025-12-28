@@ -1,4 +1,4 @@
-// Core stats (synced with app)
+// Core stats - synced with React app
 VAR strength = 1
 VAR intelligence = 1
 VAR agility = 1
@@ -7,12 +7,18 @@ VAR charisma = 1
 VAR luck = 1
 VAR morality = 1
 
-VAR player_name = "Unknown"
+// Loop tracking (synced from app on rebirth)
+VAR loop_count = 1
 
 === start ===
 You awaken in darkness.
 
-The air is cold and damp. You hear distant footsteps.
+{loop_count > 1:
+    Something feels... familiar. You've been here before.
+    Your soul carries the weight of {loop_count - 1} previous lives.
+}
+
+A faint light flickers in the distance.
 
 * [Call out for help] -> call_out
 * [Stay silent and listen] -> stay_silent
@@ -20,113 +26,217 @@ The air is cold and damp. You hear distant footsteps.
 
 === call_out ===
 Your voice echoes through the chamber.
-"Hello? Is anyone there?"
 
-~ charisma = charisma + 1
+~ charisma = charisma + 15
 
-No response. The footsteps have stopped.
 Your charisma increased to {charisma}.
 
--> continue_story
+A figure emerges from the shadows.
+
+* [Approach confidently] -> approach_figure
+* [Wait for them to come to you] -> wait_figure
 
 === stay_silent ===
-You hold your breath.
-The footsteps grow closer... then pass by.
+You hold your breath and listen.
 
-~ agility = agility + 1
+~ agility = agility + 15
 
-You remained perfectly still.
 Your agility increased to {agility}.
 
--> continue_story
+You hear footsteps approaching.
+
+* [Hide in the shadows] -> hide_shadows
+* [Prepare to flee] -> prepare_flee
 
 === feel_around ===
-Your hands find rough stone walls.
-This seems to be some kind of tunnel.
+Your hands search the cold stone floor.
 
-~ intelligence = intelligence + 1
+~ intelligence = intelligence + 15
 
-You've learned something about your surroundings.
 Your intelligence increased to {intelligence}.
 
--> continue_story
+You find something carved into the floor.
 
-=== continue_story ===
-A faint light appears ahead.
+* [Trace the pattern] -> trace_pattern
+* [Search for more clues] -> search_clues
 
-* [Move toward the light cautiously] -> approach_light
-* [Rush toward the light] -> rush_light
-* [Turn back into the darkness] -> turn_back
+=== approach_figure ===
+You step forward boldly.
 
-=== approach_light ===
-~ stamina = stamina + 1
+~ strength = strength + 10
 
-You pace yourself carefully.
-Your stamina increased to {stamina}.
+The figure reveals itself as a guardian spirit.
 
--> light_reached
+{charisma >= 20:
+    -> guardian_impressed
+- else:
+    -> guardian_test
+}
 
-=== rush_light ===
-~ strength = strength + 1
+=== wait_figure ===
+You stand your ground.
 
-You sprint with all your might.
-Your strength increased to {strength}.
+~ stamina = stamina + 10
 
--> light_reached
+The wait tests your patience, but you endure.
 
-=== turn_back ===
-~ morality = morality + 1
+-> guardian_test
 
-Something tells you the light is not to be trusted.
+=== hide_shadows ===
+You melt into the darkness.
+
+~ agility = agility + 10
+
+{agility >= 20:
+    -> escape_unnoticed
+- else:
+    -> spotted_death
+}
+
+=== prepare_flee ===
+You ready yourself to run.
+
+~ stamina = stamina + 10
+
+But the creature is faster.
+
+-> chase_death
+
+=== trace_pattern ===
+The pattern glows as you trace it.
+
+~ intelligence = intelligence + 10
+
+{intelligence >= 20:
+    -> unlock_secret
+- else:
+    -> pattern_trap_death
+}
+
+=== search_clues ===
+You search further into the darkness.
+
+~ luck = luck + 10
+
+But you've ventured too far.
+
+-> darkness_death
+
+=== guardian_impressed ===
+# LIFE2_CONTENT
+"You carry yourself with remarkable presence," the guardian says.
+
+~ charisma = charisma + 20
+~ morality = morality + 10
+
+"Few have earned my respect so quickly. Take this blessing."
+
+Your charisma increased to {charisma}.
 Your morality increased to {morality}.
 
--> darkness_path
+-> life_continues
 
-=== light_reached ===
-You reach the source of the light - a glowing crystal.
+=== guardian_test ===
+The guardian challenges you to prove your worth.
 
-{intelligence >= 2:
-    -> examine_crystal
-- else:
-    -> touch_crystal
-}
+* [Accept the challenge] -> accept_challenge
+* [Refuse and fight] -> fight_guardian_death
 
-=== examine_crystal ===
-Your keen mind recognizes this as a Soul Crystal.
-You carefully extract its power.
+=== accept_challenge ===
+~ strength = strength + 10
+~ morality = morality + 5
 
-~ luck = luck + 2
+You complete the trial with honor.
 
-Your luck increased significantly!
+-> life_continues
 
--> end_test
+=== escape_unnoticed ===
+# LIFE2_CONTENT
+You slip away like a phantom.
 
-=== touch_crystal ===
-You reach out and touch the crystal.
-It pulses with warmth.
+~ agility = agility + 20
+~ luck = luck + 10
 
-~ luck = luck + 1
+"None have ever escaped me before," a voice whispers. "Perhaps you are worthy."
 
+Your agility increased to {agility}.
 Your luck increased to {luck}.
 
--> end_test
+-> life_continues
 
-=== darkness_path ===
-You venture deeper into the shadows.
+=== unlock_secret ===
+# LIFE2_CONTENT
+The ancient knowledge floods your mind.
 
-{agility >= 2:
-    You nimbly avoid the traps hidden in the floor.
-- else:
-    You stumble but catch yourself.
-}
+~ intelligence = intelligence + 25
+~ luck = luck + 15
 
--> end_test
+Secrets of the old world reveal themselves to you.
 
-=== end_test ===
-This concludes the test story.
+Your intelligence increased to {intelligence}.
+Your luck increased to {luck}.
 
-Your final stats:
+-> life_continues
+
+=== life_continues ===
+Your journey continues...
+
+This is the end of the test content.
+
+Final Stats:
 STR: {strength}, INT: {intelligence}, AGI: {agility}
 STA: {stamina}, CHA: {charisma}, LCK: {luck}, MOR: {morality}
+
+-> END
+
+// === DEATH ENDINGS ===
+
+=== spotted_death ===
+# DEATH
+The creature spots you before you can hide.
+
+Its claws find you in the darkness.
+
+Your vision fades to black...
+
+-> END
+
+=== chase_death ===
+# DEATH
+You run, but the creature is relentless.
+
+It catches you before you reach safety.
+
+Your vision fades to black...
+
+-> END
+
+=== pattern_trap_death ===
+# DEATH
+The pattern was a trap.
+
+Ancient magic surges through you, too powerful for your mind to contain.
+
+Your vision fades to black...
+
+-> END
+
+=== darkness_death ===
+# DEATH
+The darkness itself seems to swallow you.
+
+You feel yourself fading, becoming nothing.
+
+Your vision fades to black...
+
+-> END
+
+=== fight_guardian_death ===
+# DEATH
+The guardian is far more powerful than you imagined.
+
+Your defiance is met with overwhelming force.
+
+Your vision fades to black...
 
 -> END

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storyRunner, GameState, InkChoice } from '../../engine';
 import { Stats, DEFAULT_STATS } from '../../types/stats';
+import { useSoulStatsStore } from './soulStatsStore';
 
 interface GameStore {
   // Existing state
@@ -60,6 +61,14 @@ export const useGameStore = create<GameStore>((set) => ({
   selectChoice: (index: number) => {
     const state: GameState = storyRunner.selectChoice(index);
     const stats = storyRunner.getStats();
+
+    // Check for death tag
+    if (state.tags.includes('DEATH')) {
+      useSoulStatsStore.getState().handleDeath(stats);
+      // Don't update game state - death screen will take over
+      return;
+    }
+
     set({
       currentText: state.currentText,
       choices: state.choices,

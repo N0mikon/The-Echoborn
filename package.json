@@ -11,6 +11,7 @@
     "compile:ink": "inklecate src/stories/fantasy/test.ink -o src/stories/compiled/test.json"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native/new-app-screen": "0.83.1",
     "inkjs": "^2.3.2",
     "react": "19.2.0",

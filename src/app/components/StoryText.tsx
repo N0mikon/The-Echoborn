@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   paragraph: {
     fontSize: 18,
     lineHeight: 28,
-    color: '#333',
+    color: '#e0e0e0',
     marginBottom: 12,
   },
 });

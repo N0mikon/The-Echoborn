@@ -31,10 +31,10 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: '#333',
   },
   choiceButton: {
-    backgroundColor: '#4a90d9',
+    backgroundColor: '#4a4a6a',
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,

@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StoryText, ChoiceList, StatsDisplay } from '../components';
-import { useGameStore } from '../store';
+import { useGameStore, useSoulStatsStore } from '../store';
+import { storyRunner } from '../../engine';
 
 // Import compiled test story
 import testStory from '../../stories/compiled/test.json';
 
 export const GameScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const {
     isLoading,
     isPlaying,
@@ -15,15 +18,35 @@ export const GameScreen: React.FC = () => {
     isEnded,
     loadStory,
     selectChoice,
+    syncStats,
   } = useGameStore();
 
+  const { currentScreen, applyPendingStats } = useSoulStatsStore();
+
+  // Memoize the story load and rebirth handling
+  const initializeStory = useCallback(async () => {
+    await loadStory(testStory);
+
+    // Apply pending stats from rebirth if any
+    if (applyPendingStats()) {
+      // Sync the new stats to game store
+      const stats = storyRunner.getStats();
+      syncStats(stats);
+    }
+  }, [loadStory, applyPendingStats, syncStats]);
+
   useEffect(() => {
-    loadStory(testStory);
-  }, [loadStory]);
+    // Load story when screen becomes active
+    if (!isPlaying && !isLoading) {
+      initializeStory();
+    }
+  }, [currentScreen, isPlaying, isLoading, initializeStory]);
+
+  const containerStyle = [styles.container, { paddingBottom: insets.bottom }];
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
         <ActivityIndicator size="large" color="#4a90d9" />
         <Text style={styles.loadingText}>Loading story...</Text>
       </View>
@@ -32,7 +55,7 @@ export const GameScreen: React.FC = () => {
 
   if (!isPlaying) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
         <Text style={styles.errorText}>Failed to load story</Text>
       </View>
     );
@@ -40,7 +63,7 @@ export const GameScreen: React.FC = () => {
 
   if (isEnded) {
     return (
-      <View style={styles.container}>
+      <View style={containerStyle}>
         <StatsDisplay visible />
         <StoryText text={currentText} />
         <View style={styles.endContainer}>
@@ -51,7 +74,7 @@ export const GameScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={containerStyle}>
       <StatsDisplay visible />
       <StoryText text={currentText} />
       <ChoiceList choices={choices} onSelect={selectChoice} />
@@ -62,18 +85,18 @@ export const GameScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1a2e',
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1a2e',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#888',
   },
   errorText: {
     fontSize: 16,
@@ -86,6 +109,6 @@ const styles = StyleSheet.create({
   endText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFD700',
   },
 });
