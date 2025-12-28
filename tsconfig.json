@@ -1,0 +1,15 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": ["jest"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@engine": ["src/engine"],
+      "@engine/*": ["src/engine/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.json"],
+  "exclude": ["**/node_modules", "**/Pods"]
+}
