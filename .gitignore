@@ -1,0 +1,50 @@
+# Development files (not part of game)
+.development-plan.md
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# React Native
+.expo/
+ios/Pods/
+android/.gradle/
+android/app/build/
+*.apk
+*.aab
+*.ipa
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Compiled Ink (generated from .ink source)
+# Uncomment if you want to regenerate on each build:
+# src/stories/compiled/
+
+# Claude Code local settings
+.claude/settings.local.json
