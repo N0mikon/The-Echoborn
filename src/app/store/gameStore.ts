@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { storyRunner, GameState, InkChoice } from '../../engine';
+import { storyRunner, GameState, InkChoice, saveGame } from '../../engine';
 import { Stats, DEFAULT_STATS } from '../../types/stats';
 import { useSoulStatsStore } from './soulStatsStore';
 
@@ -22,6 +22,9 @@ interface GameStore {
 
   // Stats action
   syncStats: (stats: Stats) => void;
+
+  // Save/restore action
+  restoreFromSave: (storyJson: object, inkState: string) => Promise<void>;
 }
 
 const initialState = {
@@ -76,6 +79,9 @@ export const useGameStore = create<GameStore>((set) => ({
       isEnded: state.isEnded,
       stats,
     });
+
+    // Auto-save after successful choice (fire-and-forget)
+    saveGame('fantasy-test');
   },
 
   resetGame: () => {
@@ -84,5 +90,32 @@ export const useGameStore = create<GameStore>((set) => ({
 
   syncStats: (stats: Stats) => {
     set({ stats });
+  },
+
+  restoreFromSave: async (storyJson: object, inkState: string) => {
+    set({ isLoading: true });
+
+    try {
+      // Load story structure first
+      await storyRunner.loadStory(storyJson);
+
+      // Restore saved state
+      const state = storyRunner.deserializeState(inkState);
+      const stats = storyRunner.getStats();
+
+      set({
+        isLoading: false,
+        isPlaying: true,
+        currentText: state.currentText,
+        choices: state.choices,
+        tags: state.tags,
+        isEnded: state.isEnded,
+        stats,
+      });
+    } catch (error) {
+      console.error('Failed to restore from save:', error);
+      // Fall back to fresh start
+      set({ isLoading: false });
+    }
   },
 }));

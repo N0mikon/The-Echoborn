@@ -1,9 +1,9 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StoryText, ChoiceList, StatsDisplay } from '../components';
 import { useGameStore, useSoulStatsStore } from '../store';
-import { storyRunner } from '../../engine';
+import { storyRunner, loadSavedGame, clearAllData } from '../../engine';
 
 // Import compiled test story
 import testStory from '../../stories/compiled/test.json';
@@ -19,21 +19,38 @@ export const GameScreen: React.FC = () => {
     loadStory,
     selectChoice,
     syncStats,
+    restoreFromSave,
+    resetGame,
   } = useGameStore();
 
-  const { currentScreen, applyPendingStats } = useSoulStatsStore();
+  const { currentScreen, applyPendingStats, resetAll: resetSoulStats } = useSoulStatsStore();
+
+  // Debug: Reset all data and restart
+  const handleDebugReset = useCallback(async () => {
+    await clearAllData();
+    resetSoulStats();
+    resetGame();
+  }, [resetGame, resetSoulStats]);
 
   // Memoize the story load and rebirth handling
   const initializeStory = useCallback(async () => {
-    await loadStory(testStory);
+    // Check for saved game first
+    const savedGame = await loadSavedGame();
 
-    // Apply pending stats from rebirth if any
-    if (applyPendingStats()) {
-      // Sync the new stats to game store
-      const stats = storyRunner.getStats();
-      syncStats(stats);
+    if (savedGame && savedGame.storyId === 'fantasy-test') {
+      // Restore from save
+      await restoreFromSave(testStory, savedGame.inkState);
+    } else {
+      // Fresh start
+      await loadStory(testStory);
+
+      // Apply pending stats from rebirth if any
+      if (applyPendingStats()) {
+        const stats = storyRunner.getStats();
+        syncStats(stats);
+      }
     }
-  }, [loadStory, applyPendingStats, syncStats]);
+  }, [loadStory, restoreFromSave, applyPendingStats, syncStats]);
 
   useEffect(() => {
     // Load story when screen becomes active
@@ -43,6 +60,16 @@ export const GameScreen: React.FC = () => {
   }, [currentScreen, isPlaying, isLoading, initializeStory]);
 
   const containerStyle = [styles.container, { paddingBottom: insets.bottom }];
+
+  // Debug reset button (top right corner)
+  const DebugResetButton = (
+    <TouchableOpacity
+      style={[styles.debugButton, { top: insets.top + 8 }]}
+      onPress={handleDebugReset}
+    >
+      <Text style={styles.debugButtonText}>Reset</Text>
+    </TouchableOpacity>
+  );
 
   if (isLoading) {
     return (
@@ -64,6 +91,7 @@ export const GameScreen: React.FC = () => {
   if (isEnded) {
     return (
       <View style={containerStyle}>
+        {DebugResetButton}
         <StatsDisplay visible />
         <StoryText text={currentText} />
         <View style={styles.endContainer}>
@@ -75,6 +103,7 @@ export const GameScreen: React.FC = () => {
 
   return (
     <View style={containerStyle}>
+      {DebugResetButton}
       <StatsDisplay visible />
       <StoryText text={currentText} />
       <ChoiceList choices={choices} onSelect={selectChoice} />
@@ -110,5 +139,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFD700',
+  },
+  debugButton: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 100,
+    backgroundColor: '#d9534f',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  debugButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

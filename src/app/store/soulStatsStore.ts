@@ -7,6 +7,7 @@ import {
   saveSoulStats,
   getStatIncreases,
   storyRunner,
+  clearSavedGame,
 } from '../../engine';
 
 export type GameScreen = 'game' | 'death' | 'soulStats';
@@ -36,6 +37,7 @@ interface SoulStatsStore {
   handleRebirth: () => void;
   setScreen: (screen: GameScreen) => void;
   applyPendingStats: () => boolean;
+  resetAll: () => void;
 }
 
 export const useSoulStatsStore = create<SoulStatsStore>((set, get) => ({
@@ -53,6 +55,9 @@ export const useSoulStatsStore = create<SoulStatsStore>((set, get) => ({
   },
 
   handleDeath: async (finalStats: Stats) => {
+    // Clear saved game first - new life starts fresh
+    await clearSavedGame();
+
     const { soulStats, loopCount } = get();
 
     // Calculate new soul stats (max of current vs previous)
@@ -118,5 +123,16 @@ export const useSoulStatsStore = create<SoulStatsStore>((set, get) => ({
 
     set({ pendingStartingStats: null });
     return true;
+  },
+
+  resetAll: () => {
+    set({
+      soulStats: { ...DEFAULT_STATS },
+      loopCount: 1,
+      currentScreen: 'game',
+      isInitialized: false,
+      deathData: null,
+      pendingStartingStats: null,
+    });
   },
 }));

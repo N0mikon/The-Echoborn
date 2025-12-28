@@ -12,3 +12,12 @@ export {
   getStatIncreases,
 } from './SoulStats';
 export type { SoulStatsData } from './SoulStats';
+
+export {
+  hasSavedGame,
+  saveGame,
+  loadSavedGame,
+  clearSavedGame,
+  clearAllData,
+} from './SaveSystem';
+export type { SavedGame } from './SaveSystem';
